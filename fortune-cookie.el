@@ -80,6 +80,15 @@ The default assumes `emacs-lisp-mode'."
 (defun fortune-cookie ()
   "Get a fortune cookie (maybe with cowsay)."
   (interactive)
+  (unless fortune-cookie-fortune-command
+    (display-warning
+     'fortune-cookie
+     "`fortune' program was not found" :error))
+  (if (and fortune-cookie-cowsay-enable (not fortune-cookie-cowsay-command))
+      (display-warning
+       'fortune-cookie
+       "`cowsay' program was not found; disable this warning by
+setting `fortune-cookie-cowsay-enable' to nil"))
   (shell-command-to-string
    (mapconcat
     'identity
