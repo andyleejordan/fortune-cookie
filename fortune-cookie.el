@@ -52,7 +52,7 @@ Defaults to the first on your path."
   :type 'string
   :group 'fortune-cookie)
 
-(defcustom fortune-cookie-cowsay-enable t
+(defcustom fortune-cookie-cowsay-enable nil
   "Pipes `fortune' through `cowsay' if true."
   :type 'boolean
   :group 'fortune-cookie)
