@@ -88,21 +88,27 @@ The default assumes `emacs-lisp-mode'."
   (or fortune-cookie-fortune-string
       fortune-cookie-fortune-command
       (display-warning 'fortune-cookie "`fortune' program was not found" :error))
+  (when (and fortune-cookie-cowsay-enable
+             (not fortune-cookie-cowsay-command))
+    (display-warning
+     'fortune-cookie
+     "`cowsay' program was not found; disable this warning by"
+     "setting `fortune-cookie-cowsay-enable' to nil"))
+  (or fortune-cookie-cowsay-enable)
   (let ((fortune (or fortune-cookie-fortune-string
                      (shell-command-to-string
                       (combine-and-quote-strings
                        (append (list fortune-cookie-fortune-command)
                                fortune-cookie-fortune-args))))))
-    (if fortune-cookie-cowsay-enable (fortune-cowsay fortune t) fortune)))
+    (if (and fortune-cookie-cowsay-enable
+             fortune-cookie-cowsay-command)
+        (fortune-cowsay fortune t) fortune)))
 
 (defun fortune-cowsay (str &optional skip-kill)
   "Return STR wrapped in cowsay. If SKIP-KILL, do not add to kill ring."
   (interactive "MWhat do you want to say? \nP")
   (unless fortune-cookie-cowsay-command
-    (display-warning
-     'fortune-cookie
-     "`cowsay' program was not found; disable this warning by"
-     "setting `fortune-cookie-cowsay-enable' to nil"))
+    (display-warning 'fortune-cookie "`cowsay' program was not found" :error))
   (let ((cow (shell-command-to-string
               (message (combine-and-quote-strings
                         (append (list "echo" str "|"
