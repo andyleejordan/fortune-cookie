@@ -76,18 +76,23 @@ The default assumes `emacs-lisp-mode'."
   :type 'string
   :group 'fortune-cookie)
 
+(defcustom fortune-cookie-fortune-string nil
+  "String to use for fortune instead of calling the program."
+  :type 'string
+  :group 'fortune-cookie)
+
 ;;;###autoload
 (defun fortune-cookie ()
   "Get a fortune cookie (maybe with cowsay)."
   (interactive)
-  (unless fortune-cookie-fortune-command
-    (display-warning
-     'fortune-cookie
-     "`fortune' program was not found" :error))
-  (let ((fortune (shell-command-to-string
-                  (combine-and-quote-strings
-                   (append (list fortune-cookie-fortune-command)
-                           fortune-cookie-fortune-args)))))
+  (or fortune-cookie-fortune-string
+      fortune-cookie-fortune-command
+      (display-warning 'fortune-cookie "`fortune' program was not found" :error))
+  (let ((fortune (or fortune-cookie-fortune-string
+                     (shell-command-to-string
+                      (combine-and-quote-strings
+                       (append (list fortune-cookie-fortune-command)
+                               fortune-cookie-fortune-args))))))
     (if fortune-cookie-cowsay-enable (fortune-cowsay fortune t) fortune)))
 
 (defun fortune-cowsay (str &optional skip-kill)
