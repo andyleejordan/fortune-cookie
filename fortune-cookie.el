@@ -49,7 +49,7 @@ Defaults to the first on your path."
 
 (defcustom fortune-cookie-fortune-args nil
   "Arguments passed to `fortune'."
-  :type 'string
+  :type '(repeat string)
   :group 'fortune-cookie)
 
 (defcustom fortune-cookie-cowsay-enable nil
@@ -66,7 +66,7 @@ Defaults to the first on your path."
 
 (defcustom fortune-cookie-cowsay-args nil
   "Arguments passed to `cowsay'."
-  :type 'string
+  :type '(repeat string)
   :group 'fortune-cookie)
 
 (defcustom fortune-cookie-comment-start ";; "
@@ -84,21 +84,26 @@ The default assumes `emacs-lisp-mode'."
     (display-warning
      'fortune-cookie
      "`fortune' program was not found" :error))
-  (if (and fortune-cookie-cowsay-enable (not fortune-cookie-cowsay-command))
-      (display-warning
-       'fortune-cookie
-       "`cowsay' program was not found; disable this warning by
-setting `fortune-cookie-cowsay-enable' to nil"))
-  (shell-command-to-string
-   (mapconcat
-    'identity
-    (append (list fortune-cookie-fortune-command
-		  fortune-cookie-fortune-args)
-	    (if (and fortune-cookie-cowsay-enable
-		     fortune-cookie-cowsay-command)
-		(list "|"
-		      fortune-cookie-cowsay-command
-		      fortune-cookie-cowsay-args))) " ")))
+  (let ((fortune (shell-command-to-string
+                  (combine-and-quote-strings
+                   (append (list fortune-cookie-fortune-command)
+                           fortune-cookie-fortune-args)))))
+    (if fortune-cookie-cowsay-enable (fortune-cowsay fortune t) fortune)))
+
+(defun fortune-cowsay (str &optional skip-kill)
+  "Return STR wrapped in cowsay. If SKIP-KILL, do not add to kill ring."
+  (interactive "MWhat do you want to say? \nP")
+  (unless fortune-cookie-cowsay-command
+    (display-warning
+     'fortune-cookie
+     "`cowsay' program was not found; disable this warning by"
+     "setting `fortune-cookie-cowsay-enable' to nil"))
+  (let ((cow (shell-command-to-string
+              (message (combine-and-quote-strings
+                        (append (list "echo" str "|"
+                                      fortune-cookie-cowsay-command)
+                                fortune-cookie-cowsay-args))))))
+    (unless skip-kill (kill-new cow)) (message "Copied cow to kill ring") cow))
 
 ;;;###autoload
 (defun fortune-cookie-comment (arg prefix)
